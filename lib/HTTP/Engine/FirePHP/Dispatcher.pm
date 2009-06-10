@@ -3,10 +3,9 @@ package HTTP::Engine::FirePHP::Dispatcher;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use base qw(FirePHP::Dispatcher);
-
 
 sub send_headers {
     my $self = shift;

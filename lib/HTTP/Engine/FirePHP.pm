@@ -2,11 +2,13 @@ package HTTP::Engine::FirePHP;
 
 use strict;
 use warnings;
+use HTTP::Headers;
 use HTTP::Headers::Fast;
 use HTTP::Engine::Response;
 use HTTP::Engine::FirePHP::Dispatcher;
+use UNIVERSAL::require;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 unless (grep { $_ eq 'HTTP::Headers' } @HTTP::Headers::Fast::ISA) {
     unshift @HTTP::Headers::Fast::ISA, 'HTTP::Headers';
@@ -22,6 +24,13 @@ sub HTTP::Engine::Response::fire_php {
     }
 
     $self->{fire_php};
+}
+
+sub HTTP::Engine::Response::get_fire_php_fh {
+    my $self = shift;
+    PerlIO::via::ToFirePHP->require;
+    open my $fh, '>:via(ToFirePHP)', $self->fire_php;
+    $fh;
 }
 
 1;
@@ -47,6 +56,11 @@ HTTP::Engine::FirePHP - Log to FirePHP from within HTTP::Engine
     }
 
 =head1 DESCRIPTION
+
+If you are developing a web application and don't want to or can't check the
+error log, the traditional way is to include debug messages in the HTML page.
+However, this messes up the layout and mixes content with logging; the two
+really need to be separate.
 
 FirePHP is a Firebug plugin which enables you to log to your Firebug Console
 by sending certain HTTP headers in the HTTP response. FirePHP is not just
@@ -83,6 +97,20 @@ find the logged messages there.
 When you restart the HTTP::Engine-based server, be sure to do a shift-reload
 of the relevant page in Firefox; this ensures that headers aren't cached. If
 you don't do this, you might see remnant headers from previous responses.
+
+=item get_fire_php_fh
+
+    my $dbh = DBI->connect(...);
+    my $res = HTTP::Engine::Response->new;
+    $dbh->trace(2, $res->get_fire_php_fh);
+    # Now the trace of all calls to $dbh will be sent to FirePHP
+
+This method is placed into the L<HTTP::Engine::Response> class. It returns a
+filehandle that sends every output to FirePHP - see L<PerlIO::via::ToFirePHP>
+for details. A typical use is to pass this filehandle to L<DBI>'s C<trace()>
+method and have all trace output sent to FirePHP.
+
+This method requires L<PerlIO::via::ToFirePHP> to be installed.
 
 =back
 

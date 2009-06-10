@@ -11,7 +11,9 @@ repository 'http://github.com/hanekomu/http-engine-firephp/tree/master';
 
 requires 'FirePHP::Dispatcher';
 requires 'HTTP::Engine::Response';
+requires 'HTTP::Headers';
 requires 'HTTP::Headers::Fast';
+requires 'UNIVERSAL::require';
 
 test_requires 'Test::More' => '0.70';
 extra_tests;
